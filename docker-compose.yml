@@ -1,11 +1,40 @@
 services:
-  pg:
+  db:
     image: bitnami/postgresql:latest
+    container_name: upload-widget-db
+    restart: always
     ports:
       - 5434:5432
     environment:
-      - POSTGRES_USER=docker
-      - POSTGRES_PASSWORD=docker
-      - POSTGRES_DB=upload
+      - POSTGRES_USER=$POSTGRES_USER
+      - POSTGRES_PASSWORD=$POSTGRES_PASSWORD
+      - POSTGRES_DB=$POSTGRES_DB
     volumes:
       - ./docker:/docker-entrypoint-initdb.d
+      - ./src/infra/db/migrations:/docker-entrypoint-initdb.d
+      - upload-widget-volume:/var/lib/postgresql/data
+    networks:
+      - upload-widget-network
+
+  api:
+    build: .
+    container_name: upload-widget-api
+    restart: always
+    ports:
+      - $PORT:3333
+    environment:
+      - CLOUDFLARE_ACCOUNT_ID=$CLOUDFLARE_ACCOUNT_ID
+      - CLOUDFLARE_ACCESS_KEY_ID=$CLOUDFLARE_ACCESS_KEY_ID
+      - CLOUDFLARE_SECRET_ACCESS_KEY=$CLOUDFLARE_SECRET_ACCESS_KEY
+      - CLOUDFLARE_BUCKET=$CLOUDFLARE_BUCKET
+      - CLOUDFLARE_PUBLIC_URL=$CLOUDFLARE_PUBLIC_URL
+      - DATABASE_URL=$DATABASE_URL
+    depends_on:
+      - db
+    networks:
+      - upload-widget-network
+
+volumes:
+  upload-widget-volume:
+networks:
+  upload-widget-network:
