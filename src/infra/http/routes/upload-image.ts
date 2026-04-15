@@ -12,7 +12,7 @@ export const uploadImageRoute: FastifyPluginAsyncZod = async server => {
         tags: ['uploads'],
         consumes: ['multipart/form-data'],
         response: {
-          201: z.null().describe('Image uploaded'),
+          201: z.object({ url: z.string() }).describe('Image uploaded'),
           400: z.object({ message: z.string() }),
         },
       },
@@ -35,8 +35,7 @@ export const uploadImageRoute: FastifyPluginAsyncZod = async server => {
         return reply.status(400).send({ message: 'File size limit reached.' });
       }
       if (isRight(result)) {
-        console.log(unwrapEither(result));
-        return reply.status(201).send();
+        return reply.status(201).send(result.right);
       }
       const error = unwrapEither(result);
       switch (error.constructor.name) {
