@@ -1,9 +1,7 @@
 name: ECR Image
 
 on:
-  push:
-    branches:
-      - main
+  workflow_dispatch:
 
 env:
   ECS_SERVICE: widget-server
